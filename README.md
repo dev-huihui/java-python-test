@@ -59,7 +59,7 @@ $env:PATH = "$env:JAVA_HOME\bin;" + $env:PATH
   powershell -File scripts/fetch-pyodide.ps1
   ```
 
-자세한 내용은 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 의 "오프라인 환경에서의 동작" 참고.
+자세한 내용은 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 의 "온라인 / 폐쇄망(오프라인) 환경에서의 동작" 참고.
 
 ## HTTP 엔드포인트
 
