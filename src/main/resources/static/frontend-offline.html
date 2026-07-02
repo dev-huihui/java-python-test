@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프론트엔드 검증(오프라인) · 회원가입</title>
+    <link rel="stylesheet" href="/css/form.css">
+    <!-- Pyodide 를 로컬 번들(/pyodide/)에서 로드 → 인터넷 불필요 -->
+    <script src="/pyodide/pyodide.js"></script>
+</head>
+<body>
+    <a class="back" href="/">← 목록으로</a>
+    <h1>① 프론트엔드 검증 (오프라인)</h1>
+    <p class="subtitle">로컬에 번들된 Pyodide 로 <code>validation.py</code> 를 실행합니다. (인터넷 불필요)</p>
+    <div class="status" id="status">Python 런타임 로딩 중…</div>
+
+    <form id="signup">
+        <div class="field">
+            <label for="username">아이디</label>
+            <input id="username" name="username" placeholder="영문/숫자/_ 4~20자">
+            <div class="err" data-for="username"></div>
+        </div>
+        <div class="field">
+            <label for="email">이메일</label>
+            <input id="email" name="email" placeholder="you@example.com">
+            <div class="err" data-for="email"></div>
+        </div>
+        <div class="field">
+            <label for="password">비밀번호</label>
+            <input id="password" name="password" type="password" placeholder="영문+숫자 8자 이상">
+            <div class="err" data-for="password"></div>
+        </div>
+        <div class="field">
+            <label for="passwordConfirm">비밀번호 확인</label>
+            <input id="passwordConfirm" name="passwordConfirm" type="password">
+            <div class="err" data-for="passwordConfirm"></div>
+        </div>
+        <div class="field">
+            <label for="age">나이</label>
+            <input id="age" name="age" placeholder="14 ~ 120">
+            <div class="err" data-for="age"></div>
+        </div>
+        <button type="submit" id="submitBtn" disabled>브라우저에서 검증</button>
+        <div class="result" id="result"></div>
+    </form>
+
+    <script>
+        const form = document.getElementById("signup");
+        const result = document.getElementById("result");
+        const statusEl = document.getElementById("status");
+        const submitBtn = document.getElementById("submitBtn");
+        let validateFn = null;
+        let pyodide = null;
+
+        function clearErrors() {
+            document.querySelectorAll(".err").forEach(e => e.textContent = "");
+            document.querySelectorAll(".field").forEach(f => f.classList.remove("invalid"));
+        }
+        function showErrors(errors) {
+            for (const [field, msg] of Object.entries(errors)) {
+                const box = document.querySelector(`.err[data-for="${field}"]`);
+                if (box) { box.textContent = msg; box.closest(".field").classList.add("invalid"); }
+            }
+        }
+
+        async function init() {
+            try {
+                // indexURL 로 로컬 번들 경로 지정 → CDN 대신 로컬에서 로드
+                pyodide = await loadPyodide({ indexURL: "/pyodide/" });
+                const code = await (await fetch("/python/validation.py")).text();
+                pyodide.runPython(code);
+                validateFn = pyodide.globals.get("validate");
+                statusEl.textContent = "✓ Python 준비 완료 — 오프라인(로컬 번들)에서 검증합니다.";
+                submitBtn.disabled = false;
+            } catch (err) {
+                statusEl.textContent = "Python 로딩 실패: " + err.message
+                    + " (/pyodide/ 에 Pyodide 파일이 있는지 확인하세요)";
+            }
+        }
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (!validateFn) return;
+            clearErrors();
+            result.className = "result";
+
+            const payload = Object.fromEntries(new FormData(form).entries());
+            const pyData = pyodide.toPy(payload);
+            const pyResult = validateFn(pyData);
+            const data = pyResult.toJs({ dict_converter: Object.fromEntries });
+            pyData.destroy();
+            pyResult.destroy();
+
+            if (data.valid) {
+                result.className = "result ok";
+                result.textContent = "✓ 모든 값이 유효합니다. (오프라인 Python 검증 통과)";
+            } else {
+                showErrors(data.errors);
+                result.className = "result fail";
+                result.textContent = "✗ 입력값을 확인해 주세요.";
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

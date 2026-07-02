@@ -16,6 +16,9 @@
         .card p { margin: 0; color: #555; font-size: .92rem; }
         .tag { display: inline-block; font-size: .72rem; padding: 2px 8px; border-radius: 999px;
                background: #eef2ff; color: #4f7cff; margin-left: 6px; vertical-align: middle; }
+        .tag.off { background: #eaf6ee; color: #1a7f45; }
+        .links { margin: 6px 0 0; font-size: .9rem; }
+        .links a { color: #4f7cff; text-decoration: none; margin-right: 14px; }
     </style>
 </head>
 <body>
@@ -23,21 +26,29 @@
     <p>검증 규칙은 <strong>Python 파일</strong>에만 있고, 실행 위치(프론트/백엔드)만 다릅니다.</p>
 
     <h2 style="font-size:1rem;margin-top:28px;">회원가입 검증 (<code>validation.py</code>)</h2>
-    <a class="card" href="/frontend.html">
+    <div class="card">
         <h2>① 프론트엔드 검증 <span class="tag">Pyodide (브라우저)</span></h2>
-        <p>브라우저가 Python 을 직접 실행합니다. 서버에 Python 설치가 필요 없습니다.</p>
-    </a>
+        <p>브라우저가 Python 을 직접 실행합니다. 온라인/오프라인 페이지가 따로 있습니다.</p>
+        <p class="links">
+            <a href="/frontend.html">▶ 온라인 (CDN)</a>
+            <a href="/frontend-offline.html">▶ 오프라인 (로컬 번들)</a>
+        </p>
+    </div>
 
     <a class="card" href="/backend.html">
-        <h2>② 백엔드 검증 <span class="tag">ProcessBuilder (서버)</span></h2>
+        <h2>② 백엔드 검증 <span class="tag">ProcessBuilder (서버)</span> <span class="tag off">오프라인 OK</span></h2>
         <p>서버가 <code>python cli.py</code> 를 호출해 검증합니다. 서버에 Python 설치가 필요합니다.</p>
     </a>
 
     <h2 style="font-size:1rem;margin-top:28px;">다양한 검증기 (<code>validators.py</code>)</h2>
-    <a class="card" href="/validators.html">
-        <h2>③ 여러 검증 기법 <span class="tag">프론트 / 백엔드 선택</span></h2>
-        <p>정규식·체크섬(Luhn/사업자번호)·표준 라이브러리(IP/날짜/URL)·점수 기반 등
-           다양한 검증을 실행 위치를 골라 확인합니다.</p>
-    </a>
+    <div class="card">
+        <h2>③ 여러 검증 기법 <span class="tag">프론트 / 백엔드</span></h2>
+        <p>정규식·체크섬(Luhn/사업자번호)·표준 라이브러리(IP/날짜/URL)·점수 기반 등 다양한 검증.
+           프론트/백엔드 페이지가 따로 있고, 프론트 페이지 안에서 온라인/오프라인을 선택합니다.</p>
+        <p class="links">
+            <a href="/validators-frontend.html">▶ 프론트 (온라인/오프라인 선택)</a>
+            <a href="/validators-backend.html">▶ 백엔드 (서버)</a>
+        </p>
+    </div>
 </body>
 </html>
