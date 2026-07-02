@@ -1,0 +1,20 @@
+body { font-family: system-ui, "Segoe UI", sans-serif; background: #f4f5f7; color: #1b1b1f;
+       max-width: 560px; margin: 40px auto; padding: 0 20px; }
+a.back { font-size: .88rem; color: #4f7cff; text-decoration: none; }
+h1 { font-size: 1.4rem; margin: 12px 0 4px; }
+.subtitle { color: #666; font-size: .9rem; margin: 0 0 20px; }
+form { background: #fff; border: 1px solid #e2e4e8; border-radius: 12px; padding: 24px; }
+.field { margin-bottom: 16px; }
+label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
+input { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: .95rem;
+        border: 1px solid #cfd3da; border-radius: 8px; }
+input:focus { outline: none; border-color: #4f7cff; }
+.field.invalid input { border-color: #e5484d; }
+.err { color: #e5484d; font-size: .8rem; margin-top: 5px; min-height: 1em; }
+button { width: 100%; padding: 12px; font-size: 1rem; font-weight: 600; color: #fff;
+         background: #4f7cff; border: none; border-radius: 8px; cursor: pointer; margin-top: 8px; }
+button:disabled { background: #9db3f5; cursor: not-allowed; }
+.result { margin-top: 18px; padding: 14px 16px; border-radius: 8px; font-size: .92rem; display: none; }
+.result.ok { display: block; background: #e7f7ee; color: #1a7f45; border: 1px solid #b7e4c9; }
+.result.fail { display: block; background: #fdecec; color: #c0272d; border: 1px solid #f4c2c4; }
+.status { font-size: .82rem; color: #888; margin-bottom: 12px; min-height: 1em; }

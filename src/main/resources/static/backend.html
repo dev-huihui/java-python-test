@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>백엔드 검증 · 회원가입</title>
+    <link rel="stylesheet" href="/css/form.css">
+</head>
+<body>
+    <a class="back" href="/">← 목록으로</a>
+    <h1>② 백엔드 검증</h1>
+    <p class="subtitle">서버가 <code>python cli.py</code> 를 실행해 입력값을 검증합니다.</p>
+
+    <form id="signup">
+        <div class="field">
+            <label for="username">아이디</label>
+            <input id="username" name="username" placeholder="영문/숫자/_ 4~20자">
+            <div class="err" data-for="username"></div>
+        </div>
+        <div class="field">
+            <label for="email">이메일</label>
+            <input id="email" name="email" placeholder="you@example.com">
+            <div class="err" data-for="email"></div>
+        </div>
+        <div class="field">
+            <label for="password">비밀번호</label>
+            <input id="password" name="password" type="password" placeholder="영문+숫자 8자 이상">
+            <div class="err" data-for="password"></div>
+        </div>
+        <div class="field">
+            <label for="passwordConfirm">비밀번호 확인</label>
+            <input id="passwordConfirm" name="passwordConfirm" type="password">
+            <div class="err" data-for="passwordConfirm"></div>
+        </div>
+        <div class="field">
+            <label for="age">나이</label>
+            <input id="age" name="age" placeholder="14 ~ 120">
+            <div class="err" data-for="age"></div>
+        </div>
+        <button type="submit">서버로 검증 요청</button>
+        <div class="result" id="result"></div>
+    </form>
+
+    <script>
+        const form = document.getElementById("signup");
+        const result = document.getElementById("result");
+
+        function clearErrors() {
+            document.querySelectorAll(".err").forEach(e => e.textContent = "");
+            document.querySelectorAll(".field").forEach(f => f.classList.remove("invalid"));
+        }
+
+        function showErrors(errors) {
+            for (const [field, msg] of Object.entries(errors)) {
+                const box = document.querySelector(`.err[data-for="${field}"]`);
+                if (box) {
+                    box.textContent = msg;
+                    box.closest(".field").classList.add("invalid");
+                }
+            }
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            clearErrors();
+            result.className = "result";
+            result.textContent = "";
+
+            const payload = Object.fromEntries(new FormData(form).entries());
+            try {
+                const res = await fetch("/api/validate/backend", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error("서버 응답 오류 (" + res.status + ")");
+                const data = await res.json();
+                if (data.valid) {
+                    result.className = "result ok";
+                    result.textContent = "✓ 모든 값이 유효합니다. (서버 Python 검증 통과)";
+                } else {
+                    showErrors(data.errors);
+                    result.className = "result fail";
+                    result.textContent = "✗ 입력값을 확인해 주세요.";
+                }
+            } catch (err) {
+                result.className = "result fail";
+                result.textContent = "요청 실패: " + err.message
+                    + " (서버에 Python 이 설치되어 있는지 확인하세요)";
+            }
+        });
+    </script>
+</body>
+</html>
