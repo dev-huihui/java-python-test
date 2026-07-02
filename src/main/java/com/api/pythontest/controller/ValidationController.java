@@ -1,5 +1,7 @@
 package com.api.pythontest.controller;
 
+import com.api.pythontest.dto.FieldValidationRequest;
+import com.api.pythontest.dto.FieldValidationResult;
 import com.api.pythontest.dto.SignupForm;
 import com.api.pythontest.dto.ValidationResult;
 import com.api.pythontest.service.PythonValidationService;
@@ -25,5 +27,11 @@ public class ValidationController {
     @PostMapping("/backend")
     public ValidationResult backend(@RequestBody SignupForm form) {
         return service.validate(form);
+    }
+
+    /** 다양한 검증기(정규식·체크섬·표준 라이브러리·점수 기반)를 백엔드에서 실행. */
+    @PostMapping("/field")
+    public FieldValidationResult field(@RequestBody FieldValidationRequest request) {
+        return service.validateField(request.kind(), request.value());
     }
 }

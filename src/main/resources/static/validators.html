@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>다양한 검증기 · Java ↔ Python</title>
+    <link rel="stylesheet" href="/css/form.css">
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+    <style>
+        select { width: 100%; box-sizing: border-box; padding: 10px 12px; font-size: .95rem;
+                 border: 1px solid #cfd3da; border-radius: 8px; background: #fff; }
+        .modes { display: flex; gap: 16px; margin-bottom: 16px; font-size: .9rem; }
+        .modes label { font-weight: 500; display: flex; align-items: center; gap: 6px; margin: 0; }
+        .detail { margin-top: 10px; font-size: .82rem; color: #555; background: #f4f5f7;
+                  border-radius: 6px; padding: 8px 10px; white-space: pre-wrap; word-break: break-all; }
+        .hint { font-size: .8rem; color: #888; margin-top: 6px; }
+    </style>
+</head>
+<body>
+    <a class="back" href="/">← 목록으로</a>
+    <h1>다양한 검증기</h1>
+    <p class="subtitle">검증 규칙은 <code>validators.py</code>(Python) 에만 있고, 실행 위치만 선택합니다.</p>
+
+    <form id="form">
+        <div class="modes">
+            <label><input type="radio" name="mode" value="frontend" checked> 프론트 (Pyodide, 브라우저)</label>
+            <label><input type="radio" name="mode" value="backend"> 백엔드 (ProcessBuilder, 서버)</label>
+        </div>
+
+        <div class="field">
+            <label for="kind">검증 종류</label>
+            <select id="kind"></select>
+        </div>
+        <div class="field">
+            <label for="value">값</label>
+            <input id="value" placeholder="">
+            <div class="hint" id="hint"></div>
+        </div>
+
+        <button type="submit" id="submitBtn">검증</button>
+        <div class="status" id="status"></div>
+        <div class="result" id="result"></div>
+    </form>
+
+    <script>
+        // 검증 종류 정의 (label / placeholder / 기법 설명)
+        const KINDS = [
+            { key: "email",              label: "이메일 (정규식)",             ph: "user@example.com" },
+            { key: "phone_kr",           label: "휴대폰 번호 (정규식+정규화)",  ph: "010-1234-5678" },
+            { key: "korean_name",        label: "한글 이름 (정규식)",           ph: "홍길동" },
+            { key: "hex_color",          label: "HEX 색상 (정규식)",           ph: "#4f7cff" },
+            { key: "credit_card",        label: "신용카드 번호 (Luhn 체크섬)",  ph: "4111 1111 1111 1111" },
+            { key: "business_no",        label: "사업자등록번호 (체크섬)",       ph: "123-45-67891" },
+            { key: "ip_address",         label: "IP 주소 (ipaddress 모듈)",     ph: "192.168.0.1" },
+            { key: "date",               label: "날짜 (datetime 파싱)",         ph: "2026-07-02" },
+            { key: "url",                label: "URL (urllib 파싱)",            ph: "https://example.com" },
+            { key: "password_strength",  label: "비밀번호 강도 (점수 기반)",     ph: "P@ssw0rd!" },
+        ];
+
+        const form = document.getElementById("form");
+        const kindSel = document.getElementById("kind");
+        const valueInput = document.getElementById("value");
+        const hint = document.getElementById("hint");
+        const statusEl = document.getElementById("status");
+        const result = document.getElementById("result");
+        const submitBtn = document.getElementById("submitBtn");
+
+        KINDS.forEach(k => {
+            const opt = document.createElement("option");
+            opt.value = k.key;
+            opt.textContent = k.label;
+            kindSel.appendChild(opt);
+        });
+
+        function syncPlaceholder() {
+            const k = KINDS.find(x => x.key === kindSel.value);
+            valueInput.placeholder = k ? k.ph : "";
+            hint.textContent = k ? "예시: " + k.ph : "";
+        }
+        kindSel.addEventListener("change", syncPlaceholder);
+        syncPlaceholder();
+
+        // --- 프론트(Pyodide) 실행부: 필요할 때 1회만 로드 ---
+        let pyodide = null, validateFn = null;
+        async function ensurePyodide() {
+            if (validateFn) return;
+            statusEl.textContent = "Python 런타임 로딩 중…";
+            pyodide = pyodide || await loadPyodide();
+            const code = await (await fetch("/python/validators.py")).text();
+            pyodide.runPython(code);
+            validateFn = pyodide.globals.get("validate");
+            statusEl.textContent = "✓ Python 준비 완료 (브라우저)";
+        }
+
+        function runFrontend(kind, value) {
+            const py = validateFn(kind, value);
+            const data = py.toJs({ dict_converter: Object.fromEntries });
+            py.destroy();
+            return data;
+        }
+
+        async function runBackend(kind, value) {
+            const res = await fetch("/api/validate/field", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ kind, value })
+            });
+            if (!res.ok) throw new Error("서버 응답 오류 (" + res.status + ")");
+            return await res.json();
+        }
+
+        function render(data) {
+            result.className = "result " + (data.valid ? "ok" : "fail");
+            let html = (data.valid ? "✓ " : "✗ ") + escapeHtml(data.message);
+            if (data.detail && Object.keys(data.detail).length > 0) {
+                html += '<div class="detail">' + escapeHtml(JSON.stringify(data.detail, null, 2)) + '</div>';
+            }
+            result.innerHTML = html;
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const mode = form.querySelector('input[name="mode"]:checked').value;
+            const kind = kindSel.value;
+            const value = valueInput.value;
+            result.className = "result";
+            result.textContent = "";
+            submitBtn.disabled = true;
+            try {
+                let data;
+                if (mode === "frontend") {
+                    await ensurePyodide();
+                    data = runFrontend(kind, value);
+                } else {
+                    statusEl.textContent = "서버에 검증 요청 중…";
+                    data = await runBackend(kind, value);
+                    statusEl.textContent = "✓ 서버(Python) 검증 완료";
+                }
+                render(data);
+            } catch (err) {
+                result.className = "result fail";
+                result.textContent = "실행 실패: " + err.message;
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

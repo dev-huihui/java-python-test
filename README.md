@@ -10,6 +10,10 @@
 
 기술 스택: Spring Boot 4.1.0 / Java 21 / WAR 패키징.
 
+> 이 프로젝트는 [Claude Code](https://claude.com/claude-code) 를 사용해 작성했습니다.
+
+> 설계 배경과 프론트/백엔드 방식의 **주의점·단점**은 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) 참고.
+
 ## 실행 전 준비물
 
 - **JDK 21** — 설치 후 `JAVA_HOME` 이 JDK 21 을 가리키도록 설정하세요.

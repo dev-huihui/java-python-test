@@ -19,9 +19,10 @@
     </style>
 </head>
 <body>
-    <h1>회원가입 입력값 검증 데모</h1>
-    <p>같은 <code>validation.py</code> 로직을 두 가지 방식으로 실행합니다.</p>
+    <h1>Java ↔ Python 검증 데모</h1>
+    <p>검증 규칙은 <strong>Python 파일</strong>에만 있고, 실행 위치(프론트/백엔드)만 다릅니다.</p>
 
+    <h2 style="font-size:1rem;margin-top:28px;">회원가입 검증 (<code>validation.py</code>)</h2>
     <a class="card" href="/frontend.html">
         <h2>① 프론트엔드 검증 <span class="tag">Pyodide (브라우저)</span></h2>
         <p>브라우저가 Python 을 직접 실행합니다. 서버에 Python 설치가 필요 없습니다.</p>
@@ -30,6 +31,13 @@
     <a class="card" href="/backend.html">
         <h2>② 백엔드 검증 <span class="tag">ProcessBuilder (서버)</span></h2>
         <p>서버가 <code>python cli.py</code> 를 호출해 검증합니다. 서버에 Python 설치가 필요합니다.</p>
+    </a>
+
+    <h2 style="font-size:1rem;margin-top:28px;">다양한 검증기 (<code>validators.py</code>)</h2>
+    <a class="card" href="/validators.html">
+        <h2>③ 여러 검증 기법 <span class="tag">프론트 / 백엔드 선택</span></h2>
+        <p>정규식·체크섬(Luhn/사업자번호)·표준 라이브러리(IP/날짜/URL)·점수 기반 등
+           다양한 검증을 실행 위치를 골라 확인합니다.</p>
     </a>
 </body>
 </html>
